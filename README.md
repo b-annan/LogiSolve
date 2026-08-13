@@ -213,6 +213,44 @@ intelligent-logic-verification-toolkit/
 └── .gitignore
 ```
 
+## 🚀 Deployment
+
+The toolkit runs entirely in the browser — the parser, solvers and proof engine
+are plain TypeScript with no server functions and no server-side data. It is
+therefore deployed as a **static site**, prerendered at build time.
+
+```bash
+bun run build:static   # prerenders every route into dist/client
+bun run serve:static   # serves that output locally through the Firebase emulator
+```
+
+`build:static` renders all eight routes to their own HTML file, so each module
+URL is directly linkable and carries its own `<title>` and Open Graph tags
+rather than sharing a single `index.html`.
+
+### Firebase Hosting
+
+One-time setup, then deploy:
+
+```bash
+firebase login
+firebase use --add          # pick the Firebase project to deploy to
+bun run deploy              # builds, then firebase deploy --only hosting
+```
+
+Hosting settings live in `firebase.json`: it serves `dist/client`, caches
+hashed assets in `/assets` for a year, revalidates HTML on every request, and
+rewrites unmatched paths to `index.html` so client-side routing works.
+
+> **Note:** because of that rewrite, an unknown URL returns HTTP 200 and the
+> app renders its own "page not found" screen, rather than answering 404.
+
+### Other targets
+
+Running `bun run build` without `STATIC=1` keeps the original behaviour: Nitro
+bundles an SSR server for Cloudflare (`.output/server`). Both paths build from
+the same source, so switching hosts does not require code changes.
+
 ## 👥 Team Roles
 
 | Role                            | Responsibility                                                         |
