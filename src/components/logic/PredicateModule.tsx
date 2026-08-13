@@ -1,76 +1,129 @@
 import { useMemo, useState } from "react";
-import { Panel, Examples } from "./Panel";
-import { translate, SAMPLE_SENTENCES } from "@/lib/logic/predicate";
+import { HighlightedFOL } from "./FormulaInput";
+import {
+  Callout,
+  Card,
+  EmptyState,
+  ExampleChips,
+  Explainer,
+  RunButton,
+  SectionLabel,
+} from "./Panel";
+import { translate, SAMPLE_SENTENCES, type SymbolKind } from "@/lib/logic/predicate";
 import { cn } from "@/lib/utils";
 
+const EXAMPLES = SAMPLE_SENTENCES.slice(0, 3);
+
+const KIND_CLASS: Record<SymbolKind, string> = {
+  quantifier: "border-syntax-quantifier/25 bg-syntax-quantifier/10 text-syntax-quantifier",
+  predicate: "border-info/25 bg-info/10 text-info",
+  relation: "border-truth/25 bg-truth/10 text-truth",
+  constant: "border-warning/25 bg-warning/10 text-warning",
+};
+
 export function PredicateModule() {
-  const [text, setText] = useState("Every student passed Logic.");
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-  const results = useMemo(() => lines.map((l) => ({ input: l, out: translate(l) })), [text]);
+  const [draft, setDraft] = useState("");
+  const [committed, setCommitted] = useState("");
+
+  const result = useMemo(() => (committed.trim() ? translate(committed) : null), [committed]);
+  const unrecognised = result?.confidence === "low";
+
+  const runWith = (v: string) => {
+    setDraft(v);
+    setCommitted(v);
+  };
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
-      <Panel title="Module 06 · Input" subtitle="Predicate Logic Translator">
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              English sentences (one per line)
-            </label>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              rows={6}
-              className="w-full resize-y rounded-sm border border-border bg-background/60 px-3 py-2 text-sm text-foreground caret-primary outline-none focus:border-ring"
-            />
-          </div>
-          <div className="space-y-2">
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Sample sentences
-            </p>
-            <Examples items={SAMPLE_SENTENCES} onPick={(s) => setText(s)} />
-          </div>
-          <div className="rounded-sm border border-border/60 bg-background/40 p-3 text-xs leading-relaxed text-muted-foreground">
-            <p className="font-mono uppercase tracking-[0.18em]">Method</p>
-            <p className="mt-2">
-              A rule-based grammar matcher over controlled English. Quantifier words select the
-              quantifier and the correct connective — implication under ∀, conjunction under ∃.
-            </p>
-          </div>
+    <>
+      <Card>
+        <SectionLabel>Natural language sentence</SectionLabel>
+        <div className="flex items-start gap-2.5 pt-2">
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") setCommitted(draft);
+            }}
+            placeholder="e.g. Every student passed Logic."
+            aria-label="Natural language sentence"
+            spellCheck={false}
+            autoComplete="off"
+            className="w-full min-w-0 rounded-md border border-border bg-background px-3.5 py-2.5 text-sm text-foreground caret-primary outline-none transition-colors placeholder:text-subtle focus:border-primary/60"
+          />
+          <RunButton onClick={() => setCommitted(draft)} disabled={!draft.trim()}>
+            Translate
+          </RunButton>
         </div>
-      </Panel>
+        <ExampleChips items={EXAMPLES} onPick={runWith} className="pt-2.5" />
+      </Card>
 
-      <Panel title="Module 06 · Output" subtitle="First-order logic translations">
-        {results.length ? (
-          <ul className="space-y-3">
-            {results.map((r, i) => (
-              <li key={i} className="rounded-sm border border-border bg-background/40 p-3">
-                <p className="text-sm text-foreground/70">“{r.input}”</p>
-                <p className="mt-2 font-mono text-base text-primary">{r.out.fol}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span
-                    className={cn(
-                      "rounded-sm border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em]",
-                      r.out.confidence === "high" && "border-primary/50 text-primary",
-                      r.out.confidence === "medium" && "border-accent/50 text-accent",
-                      r.out.confidence === "low" && "border-destructive/50 text-destructive",
-                    )}
+      {!result && (
+        <EmptyState
+          glyph="∀"
+          title="Enter an English sentence to translate"
+          example="Every student passed Logic."
+          onPickExample={runWith}
+        >
+          <p>Supported forms: Every/All/Each A …, Some A …, No A …, Only A …,</p>
+          <p>Not every A …, If A … then …, and singular statements about a named thing.</p>
+        </EmptyState>
+      )}
+
+      {result && unrecognised && (
+        <Callout tone="warn" icon="⚠">
+          Sentence not recognized. Try one of the examples above, or check for spelling. (In a
+          production system, this would use an NLP model.)
+        </Callout>
+      )}
+
+      {result && !unrecognised && (
+        <>
+          <Card>
+            <SectionLabel>Predicate logic output</SectionLabel>
+            <p className="overflow-x-auto pb-3.5 pt-2.5">
+              <HighlightedFOL source={result.fol} className="text-xl" />
+            </p>
+
+            <div className="border-t border-border-soft pt-3.5">
+              <SectionLabel>Symbol mapping</SectionLabel>
+              <ul className="flex flex-wrap gap-2.5 pt-2.5">
+                {result.mapping.map((m, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-[13px]"
                   >
-                    {r.out.confidence} confidence
-                  </span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    {r.out.pattern}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  {r.out.explanation}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="font-mono text-sm text-muted-foreground">Enter a sentence to translate.</p>
-        )}
-      </Panel>
-    </div>
+                    <span className="italic text-muted-foreground">&ldquo;{m.phrase}&rdquo;</span>
+                    <span className="text-subtle">→</span>
+                    <HighlightedFOL source={m.symbol} />
+                    <span
+                      className={cn(
+                        "rounded-sm border px-1.5 py-0.5 font-mono text-[10px]",
+                        KIND_CLASS[m.kind],
+                      )}
+                    >
+                      {m.kind}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Card>
+
+          <Explainer>
+            <p>
+              First-order predicate logic extends propositional logic with quantifiers (∀ &ldquo;for
+              all&rdquo;, ∃ &ldquo;there exists&rdquo;), predicates (properties of objects), and
+              relations (connections between objects).
+            </p>
+            <p>
+              The translation identifies the quantifier scope, the domain predicate, and the main
+              relation, mapping English grammar structure to formal logical structure. This sentence
+              matched the <strong>{result.pattern}</strong> pattern ({result.confidence}{" "}
+              confidence). {result.explanation}
+            </p>
+          </Explainer>
+        </>
+      )}
+    </>
   );
 }

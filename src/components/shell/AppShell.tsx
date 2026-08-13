@@ -11,14 +11,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const narrow = window.matchMedia("(max-width: 1023px)");
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    setCollapsed(narrow.matches || stored === "true");
-
-    const onChange = (e: MediaQueryListEvent) => {
-      if (e.matches) setCollapsed(true);
+    // Narrow viewports always collapse; wider ones fall back to the stored
+    // preference, so widening the window restores what the user chose.
+    const apply = () => {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      setCollapsed(narrow.matches || stored === "true");
     };
-    narrow.addEventListener("change", onChange);
-    return () => narrow.removeEventListener("change", onChange);
+    apply();
+
+    narrow.addEventListener("change", apply);
+    return () => narrow.removeEventListener("change", apply);
   }, []);
 
   const toggle = () => {

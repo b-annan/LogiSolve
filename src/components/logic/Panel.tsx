@@ -18,7 +18,7 @@ const TONE_TINT: Record<Tone, string> = {
 };
 
 /** The design's standard surface: a bordered, rounded panel on the canvas. */
-export function Card({ children, className }: { children: ReactNode; className?: string }) {
+export function Card({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
     <section className={cn("rounded-xl border border-border bg-card p-5", className)}>
       {children}
@@ -27,7 +27,7 @@ export function Card({ children, className }: { children: ReactNode; className?:
 }
 
 /** Small uppercase caption above a group of controls or results. */
-export function SectionLabel({ children, className }: { children: ReactNode; className?: string }) {
+export function SectionLabel({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
     <p
       className={cn(
@@ -49,8 +49,8 @@ export function RunButton({
 }: {
   children: ReactNode;
   onClick: () => void;
-  disabled?: boolean;
-  className?: string;
+  disabled?: boolean | undefined;
+  className?: string | undefined;
 }) {
   return (
     <button
@@ -76,7 +76,7 @@ export function GhostButton({
 }: {
   children: ReactNode;
   onClick: () => void;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <button
@@ -100,7 +100,7 @@ export function VerdictBadge({
 }: {
   tone: Tone;
   label: ReactNode;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <span
@@ -124,7 +124,7 @@ export function VerdictBanner({
 }: {
   tone: Tone;
   label: string;
-  caption?: string;
+  caption?: string | undefined;
 }) {
   return (
     <div className="py-8 text-center">
@@ -148,7 +148,7 @@ export function Callout({
   children,
 }: {
   tone: Tone;
-  icon?: ReactNode;
+  icon?: ReactNode | undefined;
   children: ReactNode;
 }) {
   return (
@@ -167,7 +167,7 @@ export function ExampleChips({
 }: {
   items: string[];
   onPick: (v: string) => void;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
@@ -191,7 +191,7 @@ export function Explainer({
   defaultOpen = true,
 }: {
   children: ReactNode;
-  defaultOpen?: boolean;
+  defaultOpen?: boolean | undefined;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -224,9 +224,9 @@ export function EmptyState({
 }: {
   glyph: ReactNode;
   title: string;
-  children?: ReactNode;
-  example?: string;
-  onPickExample?: (v: string) => void;
+  children?: ReactNode | undefined;
+  example?: string | undefined;
+  onPickExample?: ((v: string) => void) | undefined;
 }) {
   return (
     <div className="flex flex-col items-center px-4 py-16 text-center">
