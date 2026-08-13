@@ -230,12 +230,14 @@ rather than sharing a single `index.html`.
 
 ### Firebase Hosting
 
-One-time setup, then deploy:
+The deploy target is pinned in `.firebaserc` (`ilvar-ed38b`), so no
+`firebase init` is needed — running it would offer to overwrite `firebase.json`
+and lose the hosting settings below.
 
 ```bash
-firebase login
-firebase use --add          # pick the Firebase project to deploy to
-bun run deploy              # builds, then firebase deploy --only hosting
+firebase login       # once per machine
+firebase use         # should print ilvar-ed38b
+bun run deploy       # builds, then firebase deploy --only hosting
 ```
 
 Hosting settings live in `firebase.json`: it serves `dist/client`, caches
