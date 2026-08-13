@@ -63,11 +63,12 @@ export function CNFModule() {
                     {i + 1}
                   </span>
                   {i < result.steps.length - 1 && (
-                    <span className="mt-1 w-px flex-1 bg-border-soft" aria-hidden />
+                    <span className="mt-1 w-px flex-1 bg-border" aria-hidden />
                   )}
                 </div>
                 <Card className="mb-3 min-w-0 flex-1">
-                  <SectionLabel>{s.title}</SectionLabel>
+                  {/* The step titles are already numbered; the gutter shows the number. */}
+                  <SectionLabel>{s.title.replace(/^\d+\.\s*/, "")}</SectionLabel>
                   <p className="overflow-x-auto pt-2">
                     <Highlighted source={s.formula} className="text-[15px]" />
                   </p>

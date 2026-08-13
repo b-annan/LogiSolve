@@ -39,10 +39,26 @@ function normalizeVerb(v: string) {
   return cap(w);
 }
 
-const q = (phrase: string, symbol: string): SymbolMapping => ({ phrase, symbol, kind: "quantifier" });
-const p1 = (phrase: string, symbol: string): SymbolMapping => ({ phrase, symbol, kind: "predicate" });
-const rel = (phrase: string, symbol: string): SymbolMapping => ({ phrase, symbol, kind: "relation" });
-const con = (phrase: string, symbol: string): SymbolMapping => ({ phrase, symbol, kind: "constant" });
+const q = (phrase: string, symbol: string): SymbolMapping => ({
+  phrase,
+  symbol,
+  kind: "quantifier",
+});
+const p1 = (phrase: string, symbol: string): SymbolMapping => ({
+  phrase,
+  symbol,
+  kind: "predicate",
+});
+const rel = (phrase: string, symbol: string): SymbolMapping => ({
+  phrase,
+  symbol,
+  kind: "relation",
+});
+const con = (phrase: string, symbol: string): SymbolMapping => ({
+  phrase,
+  symbol,
+  kind: "constant",
+});
 
 type Built = { fol: string; explanation: string; mapping: SymbolMapping[] };
 
@@ -119,11 +135,7 @@ const RULES: Rule[] = [
     build: (m) => ({
       fol: `∀x (${pred(m[1]!)}(x) → ¬${pred(m[2]!)}(x))`,
       explanation: `"No A is B" is equivalent to ¬∃x (A(x) ∧ B(x)), shown here in its universal form.`,
-      mapping: [
-        q("No", "∀x … ¬"),
-        p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `¬${pred(m[2]!)}(x)`),
-      ],
+      mapping: [q("No", "∀x … ¬"), p1(m[1]!, `${pred(m[1]!)}(x)`), p1(m[2]!, `¬${pred(m[2]!)}(x)`)],
     }),
   },
   {
@@ -147,11 +159,7 @@ const RULES: Rule[] = [
     build: (m) => ({
       fol: `∃x (${pred(m[1]!)}(x) ∧ ${pred(m[2]!)}(x))`,
       explanation: `Existential statements use conjunction inside ∃, never implication.`,
-      mapping: [
-        q("Some", "∃x"),
-        p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `${pred(m[2]!)}(x)`),
-      ],
+      mapping: [q("Some", "∃x"), p1(m[1]!, `${pred(m[1]!)}(x)`), p1(m[2]!, `${pred(m[2]!)}(x)`)],
     }),
   },
   {
@@ -280,7 +288,7 @@ export function translate(sentence: string): Translation {
     fol: guess,
     pattern: "Unrecognised pattern — heuristic fallback",
     explanation:
-      "The sentence does not match any supported grammar pattern. Try forms like \"Every student passed Logic.\", \"Some birds fly.\", \"No fish is a mammal.\", or \"Alice loves Bob.\"",
+      'The sentence does not match any supported grammar pattern. Try forms like "Every student passed Logic.", "Some birds fly.", "No fish is a mammal.", or "Alice loves Bob."',
     confidence: "low",
     mapping: [],
   };

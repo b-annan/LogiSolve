@@ -22,7 +22,13 @@ const OP_CLASS: Record<string, string> = {
 
 /** Renders a propositional formula with the design's syntax colours, rewriting
  *  ASCII operators (`->`, `^`, `v`, `~`) to their Unicode glyphs. */
-export function Highlighted({ source, className }: { source: string; className?: string | undefined }) {
+export function Highlighted({
+  source,
+  className,
+}: {
+  source: string;
+  className?: string | undefined;
+}) {
   const parts = useMemo(() => {
     try {
       const tokens = tokenize(source);
@@ -67,7 +73,13 @@ export function Highlighted({ source, className }: { source: string; className?:
 }
 
 /** Renders first-order logic strings produced by the predicate translator. */
-export function HighlightedFOL({ source, className }: { source: string; className?: string | undefined }) {
+export function HighlightedFOL({
+  source,
+  className,
+}: {
+  source: string;
+  className?: string | undefined;
+}) {
   const parts = source.split(/([∀∃¬∧∨→↔(),\s])/).filter(Boolean);
   return (
     <span className={cn("font-mono", className)}>
@@ -131,7 +143,13 @@ export function FormulaInput({
 }
 
 /** Highlights the text only when it is a parseable formula; otherwise renders it as prose. */
-export function MaybeFormula({ source, className }: { source: string; className?: string | undefined }) {
+export function MaybeFormula({
+  source,
+  className,
+}: {
+  source: string;
+  className?: string | undefined;
+}) {
   let ok = false;
   try {
     parse(source);

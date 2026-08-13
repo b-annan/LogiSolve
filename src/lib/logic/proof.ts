@@ -246,7 +246,9 @@ export function buildProof(premises: Node[], goal: Node, strategy: Strategy): Pr
       const prem = conj(premises);
       lines.push({
         n: n++,
-        statement: prem ? `${formatTop(prem)} is assumed true` : "No premises — goal is a tautology",
+        statement: prem
+          ? `${formatTop(prem)} is assumed true`
+          : "No premises — goal is a tautology",
         justification: "Assumption of the premise set",
         refs: premiseLines,
       });

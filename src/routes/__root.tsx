@@ -85,7 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "A browser-based toolkit for propositional and predicate logic: truth tables, equivalence checking, CNF conversion, resolution refutation, DPLL satisfiability, English-to-FOL translation and guided proofs.",
       },
       { name: "author", content: "ILVAR" },
-      { property: "og:title", content: "ILVAR — Intelligent Logic Verification & Automated Reasoning" },
+      {
+        property: "og:title",
+        content: "ILVAR — Intelligent Logic Verification & Automated Reasoning",
+      },
       {
         property: "og:description",
         content:

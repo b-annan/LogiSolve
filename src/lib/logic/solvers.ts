@@ -31,7 +31,11 @@ export function dpll(clausesIn: Clause[], vars: string[]): SatResult {
     return out;
   }
 
-  function solve(clauses: Clause[], assign: Record<string, boolean>, depth: number): Record<string, boolean> | null {
+  function solve(
+    clauses: Clause[],
+    assign: Record<string, boolean>,
+    depth: number,
+  ): Record<string, boolean> | null {
     // unit propagation
     let current = clauses;
     let unit = current.find((c) => c.length === 1);
@@ -54,10 +58,11 @@ export function dpll(clausesIn: Clause[], vars: string[]): SatResult {
     }
     // pure literal elimination
     const counts = new Map<string, Set<boolean>>();
-    for (const c of current) for (const l of c) {
-      if (!counts.has(l.name)) counts.set(l.name, new Set());
-      counts.get(l.name)!.add(l.negated);
-    }
+    for (const c of current)
+      for (const l of c) {
+        if (!counts.has(l.name)) counts.set(l.name, new Set());
+        counts.get(l.name)!.add(l.negated);
+      }
     for (const [name, polarities] of counts) {
       if (polarities.size === 1) {
         const negated = [...polarities][0]!;
@@ -147,10 +152,13 @@ function resolveClauses(a: Clause, b: Clause): Clause[] {
     for (const lb of b) {
       if (la.name === lb.name && la.negated !== lb.negated) {
         const merged = new Map<string, Literal>();
-        for (const l of a) if (!(l.name === la.name && l.negated === la.negated)) merged.set(key(l), l);
-        for (const l of b) if (!(l.name === lb.name && l.negated === lb.negated)) merged.set(key(l), l);
+        for (const l of a)
+          if (!(l.name === la.name && l.negated === la.negated)) merged.set(key(l), l);
+        for (const l of b)
+          if (!(l.name === lb.name && l.negated === lb.negated)) merged.set(key(l), l);
         const clause = [...merged.values()];
-        if (clause.some((x) => clause.some((y) => x.name === y.name && x.negated !== y.negated))) continue;
+        if (clause.some((x) => clause.some((y) => x.name === y.name && x.negated !== y.negated)))
+          continue;
         results.push(clause);
       }
     }
@@ -228,7 +236,12 @@ export function proveByResolution(premises: Node[], conclusion: Node | null): Re
 
   // Check premise satisfiability first
   const premisesSat =
-    baseClauses.length === 0 ? { satisfiable: true } : dpll(baseClauses.map((c) => [...c]), []);
+    baseClauses.length === 0
+      ? { satisfiable: true }
+      : dpll(
+          baseClauses.map((c) => [...c]),
+          [],
+        );
   if (!premisesSat.satisfiable) {
     const negSteps: ResolutionStep[] = [...steps];
     refute(new Map(known), [...baseClauses], negSteps, id);

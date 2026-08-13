@@ -221,7 +221,13 @@ function refText(refs: ProofLine["refs"]) {
   return Array.isArray(refs) ? refs.join(", ") : refs;
 }
 
-function Th({ children, className }: { children: React.ReactNode; className?: string | undefined }) {
+function Th({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string | undefined;
+}) {
   return (
     <th
       className={cn(

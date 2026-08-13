@@ -136,11 +136,7 @@ export function ResolutionModule() {
           </div>
         </div>
 
-        <ExampleChips
-          items={PRESETS.map((p) => p.name)}
-          onPick={runPreset}
-          className="pt-4"
-        />
+        <ExampleChips items={PRESETS.map((p) => p.name)} onPick={runPreset} className="pt-4" />
       </Card>
 
       {parsed?.error && (
@@ -160,7 +156,9 @@ export function ResolutionModule() {
       {result && (
         <div className="flex flex-col gap-4">
           <VerdictBadge
-            tone={result.verdict === "valid" ? "good" : result.verdict === "invalid" ? "bad" : "warn"}
+            tone={
+              result.verdict === "valid" ? "good" : result.verdict === "invalid" ? "bad" : "warn"
+            }
             label={
               result.verdict === "valid"
                 ? "✓ Argument is Valid"

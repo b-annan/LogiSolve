@@ -18,7 +18,13 @@ const TONE_TINT: Record<Tone, string> = {
 };
 
 /** The design's standard surface: a bordered, rounded panel on the canvas. */
-export function Card({ children, className }: { children: ReactNode; className?: string | undefined }) {
+export function Card({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string | undefined;
+}) {
   return (
     <section className={cn("rounded-xl border border-border bg-card p-5", className)}>
       {children}
@@ -27,13 +33,16 @@ export function Card({ children, className }: { children: ReactNode; className?:
 }
 
 /** Small uppercase caption above a group of controls or results. */
-export function SectionLabel({ children, className }: { children: ReactNode; className?: string | undefined }) {
+export function SectionLabel({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string | undefined;
+}) {
   return (
     <p
-      className={cn(
-        "text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle",
-        className,
-      )}
+      className={cn("text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle", className)}
     >
       {children}
     </p>
@@ -232,9 +241,7 @@ export function EmptyState({
     <div className="flex flex-col items-center px-4 py-16 text-center">
       <p className="font-mono text-[44px] leading-none text-dim opacity-60">{glyph}</p>
       <p className="pt-8 text-[15px] font-semibold text-muted-foreground">{title}</p>
-      {children && (
-        <div className="pt-2 text-[13px] leading-[1.55] text-subtle">{children}</div>
-      )}
+      {children && <div className="pt-2 text-[13px] leading-[1.55] text-subtle">{children}</div>}
       {example && onPickExample && (
         <button
           type="button"

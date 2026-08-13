@@ -176,8 +176,8 @@ export function EquivalenceModule() {
             <p>
               Two formulas are logically equivalent (written A ≡ B) when they have identical truth
               values for every possible assignment of variables. This means one can always be
-              substituted for the other in any logical context without changing the
-              formula&rsquo;s meaning.
+              substituted for the other in any logical context without changing the formula&rsquo;s
+              meaning.
             </p>
             <p>
               Here {formatTop(a.ast)} and {formatTop(b.ast)} were compared across{" "}

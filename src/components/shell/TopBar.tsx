@@ -25,8 +25,10 @@ export function TopBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           <span className="size-1.5 rounded-full bg-truth" />
           <span className="text-[11px] text-subtle">Engine ready</span>
         </span>
-        <span className="h-4 w-px bg-border" />
-        <span className="hidden text-[11px] text-subtle sm:inline">CS 3840 — Formal Logic</span>
+        <span className="hidden items-center gap-2.5 sm:flex">
+          <span className="h-4 w-px bg-border" />
+          <span className="text-[11px] text-subtle">CS 3840 — Formal Logic</span>
+        </span>
       </div>
     </header>
   );

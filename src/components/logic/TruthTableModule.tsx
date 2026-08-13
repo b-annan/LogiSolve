@@ -3,7 +3,14 @@ import { Highlighted } from "./FormulaInput";
 import { Callout, Card, EmptyState, Explainer, TF, VerdictBadge } from "./Panel";
 import { RunCard } from "./RunCard";
 import { useFormula } from "./useFormula";
-import { allAssignments, collectVars, evaluate, format, formatTop, subFormulas } from "@/lib/logic/parser";
+import {
+  allAssignments,
+  collectVars,
+  evaluate,
+  format,
+  formatTop,
+  subFormulas,
+} from "@/lib/logic/parser";
 import { classify, type Classification } from "@/lib/logic/solvers";
 import { cn } from "@/lib/utils";
 
@@ -59,8 +66,8 @@ export function TruthTableModule() {
 
       {table?.tooLarge && (
         <Callout tone="warn" icon="⚠">
-          {table.vars.length} variables would produce {2 ** table.vars.length} rows. The generator is
-          capped at {MAX_VARS} variables.
+          {table.vars.length} variables would produce {2 ** table.vars.length} rows. The generator
+          is capped at {MAX_VARS} variables.
         </Callout>
       )}
 
@@ -110,7 +117,10 @@ export function TruthTableModule() {
               </thead>
               <tbody>
                 {table.rows.map((r, ri) => (
-                  <tr key={ri} className={cn("border-b border-border-soft", ri % 2 === 1 && "bg-surface/50")}>
+                  <tr
+                    key={ri}
+                    className={cn("border-b border-border-soft", ri % 2 === 1 && "bg-surface/50")}
+                  >
                     {table.vars.map((v) => (
                       <td key={v} className="px-3 py-2 text-center">
                         <TF value={!!r.env[v]} />

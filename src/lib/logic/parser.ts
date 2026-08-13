@@ -40,12 +40,12 @@ const OPERATORS: Record<string, string> = {
   "|": "or",
   "∨": "or",
   "+": "or",
-  "v": "or",
-  "V": "or",
+  v: "or",
+  V: "or",
   "~": "not",
   "!": "not",
   "¬": "not",
-  "xor": "xor",
+  xor: "xor",
   "⊕": "xor",
 };
 
@@ -204,7 +204,10 @@ export function parse(input: string): Node {
 
   const ast = parseIff();
   if (pos < tokens.length) {
-    throw new LogicError(`Unexpected token near position ${tokens[pos]!.start}`, tokens[pos]!.start);
+    throw new LogicError(
+      `Unexpected token near position ${tokens[pos]!.start}`,
+      tokens[pos]!.start,
+    );
   }
   return ast;
 }
@@ -226,7 +229,8 @@ export function format(node: Node): string {
       return node.value ? "⊤" : "⊥";
     case "not": {
       const inner = format(node.arg);
-      const needParen = node.arg.type !== "var" && node.arg.type !== "const" && node.arg.type !== "not";
+      const needParen =
+        node.arg.type !== "var" && node.arg.type !== "const" && node.arg.type !== "not";
       return `${SYMBOL.not}${needParen ? `(${inner})` : inner}`;
     }
     default:
