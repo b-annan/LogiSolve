@@ -31,12 +31,22 @@ function pred(phrase: string) {
     .join("");
 }
 
-function normalizeVerb(v: string) {
+/**
+ * Names a predicate after a verb, using its third-person singular form so the
+ * symbol reads the way it does in the source sentence: "teach" and "teaches"
+ * both become Teaches, "fly" becomes Flies, "love" becomes Loves.
+ *
+ * Past-tense verbs keep their form — "passed" stays Passed, never Passeds.
+ */
+function verbPredicate(v: string) {
   const w = v.toLowerCase();
-  if (w.endsWith("ies")) return cap(w.slice(0, -3) + "y");
-  if (w.endsWith("sses") || w.endsWith("shes") || w.endsWith("ches")) return cap(w.slice(0, -2));
-  if (w.endsWith("s") && !w.endsWith("ss")) return cap(w.slice(0, -1));
-  return cap(w);
+  if (w.endsWith("ed")) return cap(w);
+  // Already third-person singular ("teaches", "flies", "loves").
+  if (w.endsWith("s") && !w.endsWith("ss")) return cap(w);
+  // Base form: add the third-person -s, with the usual spelling changes.
+  if (/[^aeiou]y$/.test(w)) return cap(w.slice(0, -1) + "ies");
+  if (/(s|x|z|ch|sh|o)$/.test(w)) return cap(w + "es");
+  return cap(w + "s");
 }
 
 const q = (phrase: string, symbol: string): SymbolMapping => ({
@@ -85,21 +95,8 @@ const RULES: Rule[] = [
       ],
     }),
   },
-  {
-    name: "Universal affirmative — Every A B(s) C",
-    re: /^(?:every|each|all)\s+(\w+)s?\s+(\w+)\s+([\w\s]+?)\.?$/i,
-    confidence: "high",
-    build: (m) => ({
-      fol: `∀x (${pred(m[1]!)}(x) → ${normalizeVerb(m[2]!)}(x, ${pred(m[3]!)}))`,
-      explanation: `"Every ${m[1]}" introduces a universal quantifier restricted by ${pred(m[1]!)}(x); the verb "${m[2]}" becomes a binary predicate relating x to the object ${pred(m[3]!)}.`,
-      mapping: [
-        q(m[0]!.split(/\s+/)[0]!, "∀x"),
-        p1(m[1]!, `${pred(m[1]!)}(x)`),
-        rel(m[2]!, `${normalizeVerb(m[2]!)}(x, ${pred(m[3]!)})`),
-        con(m[3]!, pred(m[3]!)),
-      ],
-    }),
-  },
+  // Copular forms come first, mirroring the Some… rules below: "All humans are
+  // mortal" must not be read as a binary relation named after the verb "are".
   {
     name: "Universal affirmative — Every A is (a) B",
     re: /^(?:every|each|all)\s+(\w+?)s?\s+(?:is|are)\s+(?:a|an)?\s*([\w\s]+?)\.?$/i,
@@ -115,16 +112,31 @@ const RULES: Rule[] = [
     }),
   },
   {
+    name: "Universal affirmative — Every A B(s) C",
+    re: /^(?:every|each|all)\s+(\w+)s?\s+(\w+)\s+([\w\s]+?)\.?$/i,
+    confidence: "high",
+    build: (m) => ({
+      fol: `∀x (${pred(m[1]!)}(x) → ${verbPredicate(m[2]!)}(x, ${pred(m[3]!)}))`,
+      explanation: `"Every ${m[1]}" introduces a universal quantifier restricted by ${pred(m[1]!)}(x); the verb "${m[2]}" becomes a binary predicate relating x to the object ${pred(m[3]!)}.`,
+      mapping: [
+        q(m[0]!.split(/\s+/)[0]!, "∀x"),
+        p1(m[1]!, `${pred(m[1]!)}(x)`),
+        rel(m[2]!, `${verbPredicate(m[2]!)}(x, ${pred(m[3]!)})`),
+        con(m[3]!, pred(m[3]!)),
+      ],
+    }),
+  },
+  {
     name: "Universal affirmative — Every A B(s)",
     re: /^(?:every|each|all)\s+(\w+?)s?\s+(\w+)\.?$/i,
     confidence: "high",
     build: (m) => ({
-      fol: `∀x (${pred(m[1]!)}(x) → ${normalizeVerb(m[2]!)}(x))`,
+      fol: `∀x (${pred(m[1]!)}(x) → ${verbPredicate(m[2]!)}(x))`,
       explanation: `Restricted universal quantification: for every x, if x is a ${m[1]} then x ${m[2]}.`,
       mapping: [
         q(m[0]!.split(/\s+/)[0]!, "∀x"),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `${normalizeVerb(m[2]!)}(x)`),
+        p1(m[2]!, `${verbPredicate(m[2]!)}(x)`),
       ],
     }),
   },
@@ -143,12 +155,12 @@ const RULES: Rule[] = [
     re: /^no\s+(\w+?)s?\s+(\w+)\.?$/i,
     confidence: "medium",
     build: (m) => ({
-      fol: `¬∃x (${pred(m[1]!)}(x) ∧ ${normalizeVerb(m[2]!)}(x))`,
+      fol: `¬∃x (${pred(m[1]!)}(x) ∧ ${verbPredicate(m[2]!)}(x))`,
       explanation: `A negative existential: there is no x that is a ${m[1]} and ${m[2]}.`,
       mapping: [
         q("No", "¬∃x"),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `${normalizeVerb(m[2]!)}(x)`),
+        p1(m[2]!, `${verbPredicate(m[2]!)}(x)`),
       ],
     }),
   },
@@ -167,12 +179,12 @@ const RULES: Rule[] = [
     re: /^some\s+(\w+?)s?\s+(\w+)\s+([\w\s]+?)\.?$/i,
     confidence: "high",
     build: (m) => ({
-      fol: `∃x (${pred(m[1]!)}(x) ∧ ${normalizeVerb(m[2]!)}(x, ${pred(m[3]!)}))`,
-      explanation: `At least one x satisfies both being a ${m[1]} and standing in the ${normalizeVerb(m[2]!)} relation to ${pred(m[3]!)}.`,
+      fol: `∃x (${pred(m[1]!)}(x) ∧ ${verbPredicate(m[2]!)}(x, ${pred(m[3]!)}))`,
+      explanation: `At least one x satisfies both being a ${m[1]} and standing in the ${verbPredicate(m[2]!)} relation to ${pred(m[3]!)}.`,
       mapping: [
         q("Some", "∃x"),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
-        rel(m[2]!, `${normalizeVerb(m[2]!)}(x, ${pred(m[3]!)})`),
+        rel(m[2]!, `${verbPredicate(m[2]!)}(x, ${pred(m[3]!)})`),
         con(m[3]!, pred(m[3]!)),
       ],
     }),
@@ -182,12 +194,12 @@ const RULES: Rule[] = [
     re: /^some\s+(\w+?)s?\s+(\w+)\.?$/i,
     confidence: "medium",
     build: (m) => ({
-      fol: `∃x (${pred(m[1]!)}(x) ∧ ${normalizeVerb(m[2]!)}(x))`,
+      fol: `∃x (${pred(m[1]!)}(x) ∧ ${verbPredicate(m[2]!)}(x))`,
       explanation: `Existential quantification with a conjunctive body.`,
       mapping: [
         q("Some", "∃x"),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `${normalizeVerb(m[2]!)}(x)`),
+        p1(m[2]!, `${verbPredicate(m[2]!)}(x)`),
       ],
     }),
   },
@@ -196,12 +208,12 @@ const RULES: Rule[] = [
     re: /^not\s+(?:every|all)\s+(\w+?)s?\s+(\w+)\.?$/i,
     confidence: "medium",
     build: (m) => ({
-      fol: `¬∀x (${pred(m[1]!)}(x) → ${normalizeVerb(m[2]!)}(x))`,
-      explanation: `Equivalent to ∃x (${pred(m[1]!)}(x) ∧ ¬${normalizeVerb(m[2]!)}(x)) by quantifier duality.`,
+      fol: `¬∀x (${pred(m[1]!)}(x) → ${verbPredicate(m[2]!)}(x))`,
+      explanation: `Equivalent to ∃x (${pred(m[1]!)}(x) ∧ ¬${verbPredicate(m[2]!)}(x)) by quantifier duality.`,
       mapping: [
         q("Not every", "¬∀x"),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `${normalizeVerb(m[2]!)}(x)`),
+        p1(m[2]!, `${verbPredicate(m[2]!)}(x)`),
       ],
     }),
   },
@@ -220,11 +232,11 @@ const RULES: Rule[] = [
     re: /^([A-Z]\w+)\s+(\w+)\s+(?:the\s+)?([\w\s]+?)\.?$/,
     confidence: "medium",
     build: (m) => ({
-      fol: `${normalizeVerb(m[2]!)}(${m[1]}, ${pred(m[3]!)})`,
+      fol: `${verbPredicate(m[2]!)}(${m[1]}, ${pred(m[3]!)})`,
       explanation: `Binary relation between the constant ${m[1]} and the constant ${pred(m[3]!)}.`,
       mapping: [
         con(m[1]!, m[1]!),
-        rel(m[2]!, `${normalizeVerb(m[2]!)}(${m[1]}, ${pred(m[3]!)})`),
+        rel(m[2]!, `${verbPredicate(m[2]!)}(${m[1]}, ${pred(m[3]!)})`),
         con(m[3]!, pred(m[3]!)),
       ],
     }),
@@ -234,13 +246,13 @@ const RULES: Rule[] = [
     re: /^if\s+(?:a|an|every)?\s*(\w+?)s?\s+(\w+),?\s+then\s+(?:it|they)\s+(\w+)\.?$/i,
     confidence: "medium",
     build: (m) => ({
-      fol: `∀x ((${pred(m[1]!)}(x) ∧ ${normalizeVerb(m[2]!)}(x)) → ${normalizeVerb(m[3]!)}(x))`,
+      fol: `∀x ((${pred(m[1]!)}(x) ∧ ${verbPredicate(m[2]!)}(x)) → ${verbPredicate(m[3]!)}(x))`,
       explanation: `Generic conditionals are read as universally quantified implications.`,
       mapping: [
         q("If … then", "∀x (… → …)"),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
-        p1(m[2]!, `${normalizeVerb(m[2]!)}(x)`),
-        p1(m[3]!, `${normalizeVerb(m[3]!)}(x)`),
+        p1(m[2]!, `${verbPredicate(m[2]!)}(x)`),
+        p1(m[3]!, `${verbPredicate(m[3]!)}(x)`),
       ],
     }),
   },
@@ -249,11 +261,11 @@ const RULES: Rule[] = [
     re: /^only\s+(\w+?)s?\s+(\w+)\.?$/i,
     confidence: "medium",
     build: (m) => ({
-      fol: `∀x (${normalizeVerb(m[2]!)}(x) → ${pred(m[1]!)}(x))`,
+      fol: `∀x (${verbPredicate(m[2]!)}(x) → ${pred(m[1]!)}(x))`,
       explanation: `"Only A B" reverses the implication compared to "Every A B".`,
       mapping: [
         q("Only", "∀x"),
-        p1(m[2]!, `${normalizeVerb(m[2]!)}(x)`),
+        p1(m[2]!, `${verbPredicate(m[2]!)}(x)`),
         p1(m[1]!, `${pred(m[1]!)}(x)`),
       ],
     }),
