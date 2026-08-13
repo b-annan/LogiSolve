@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CnfRouteImport } from './routes/cnf'
+import { Route as EquivalenceRouteImport } from './routes/equivalence'
+import { Route as PredicateRouteImport } from './routes/predicate'
+import { Route as ProofRouteImport } from './routes/proof'
+import { Route as ResolutionRouteImport } from './routes/resolution'
+import { Route as SatRouteImport } from './routes/sat'
+import { Route as TruthTableRouteImport } from './routes/truth-table'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CnfRoute = CnfRouteImport.update({
+  id: '/cnf',
+  path: '/cnf',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquivalenceRoute = EquivalenceRouteImport.update({
+  id: '/equivalence',
+  path: '/equivalence',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PredicateRoute = PredicateRouteImport.update({
+  id: '/predicate',
+  path: '/predicate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProofRoute = ProofRouteImport.update({
+  id: '/proof',
+  path: '/proof',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResolutionRoute = ResolutionRouteImport.update({
+  id: '/resolution',
+  path: '/resolution',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SatRoute = SatRouteImport.update({
+  id: '/sat',
+  path: '/sat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TruthTableRoute = TruthTableRouteImport.update({
+  id: '/truth-table',
+  path: '/truth-table',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cnf': typeof CnfRoute
+  '/equivalence': typeof EquivalenceRoute
+  '/predicate': typeof PredicateRoute
+  '/proof': typeof ProofRoute
+  '/resolution': typeof ResolutionRoute
+  '/sat': typeof SatRoute
+  '/truth-table': typeof TruthTableRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cnf': typeof CnfRoute
+  '/equivalence': typeof EquivalenceRoute
+  '/predicate': typeof PredicateRoute
+  '/proof': typeof ProofRoute
+  '/resolution': typeof ResolutionRoute
+  '/sat': typeof SatRoute
+  '/truth-table': typeof TruthTableRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cnf': typeof CnfRoute
+  '/equivalence': typeof EquivalenceRoute
+  '/predicate': typeof PredicateRoute
+  '/proof': typeof ProofRoute
+  '/resolution': typeof ResolutionRoute
+  '/sat': typeof SatRoute
+  '/truth-table': typeof TruthTableRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cnf'
+    | '/equivalence'
+    | '/predicate'
+    | '/proof'
+    | '/resolution'
+    | '/sat'
+    | '/truth-table'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cnf'
+    | '/equivalence'
+    | '/predicate'
+    | '/proof'
+    | '/resolution'
+    | '/sat'
+    | '/truth-table'
+  id:
+    | '__root__'
+    | '/'
+    | '/cnf'
+    | '/equivalence'
+    | '/predicate'
+    | '/proof'
+    | '/resolution'
+    | '/sat'
+    | '/truth-table'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CnfRoute: typeof CnfRoute
+  EquivalenceRoute: typeof EquivalenceRoute
+  PredicateRoute: typeof PredicateRoute
+  ProofRoute: typeof ProofRoute
+  ResolutionRoute: typeof ResolutionRoute
+  SatRoute: typeof SatRoute
+  TruthTableRoute: typeof TruthTableRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cnf': {
+      id: '/cnf'
+      path: '/cnf'
+      fullPath: '/cnf'
+      preLoaderRoute: typeof CnfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equivalence': {
+      id: '/equivalence'
+      path: '/equivalence'
+      fullPath: '/equivalence'
+      preLoaderRoute: typeof EquivalenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/predicate': {
+      id: '/predicate'
+      path: '/predicate'
+      fullPath: '/predicate'
+      preLoaderRoute: typeof PredicateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proof': {
+      id: '/proof'
+      path: '/proof'
+      fullPath: '/proof'
+      preLoaderRoute: typeof ProofRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resolution': {
+      id: '/resolution'
+      path: '/resolution'
+      fullPath: '/resolution'
+      preLoaderRoute: typeof ResolutionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sat': {
+      id: '/sat'
+      path: '/sat'
+      fullPath: '/sat'
+      preLoaderRoute: typeof SatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/truth-table': {
+      id: '/truth-table'
+      path: '/truth-table'
+      fullPath: '/truth-table'
+      preLoaderRoute: typeof TruthTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CnfRoute: CnfRoute,
+  EquivalenceRoute: EquivalenceRoute,
+  PredicateRoute: PredicateRoute,
+  ProofRoute: ProofRoute,
+  ResolutionRoute: ResolutionRoute,
+  SatRoute: SatRoute,
+  TruthTableRoute: TruthTableRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
