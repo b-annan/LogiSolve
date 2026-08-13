@@ -234,6 +234,12 @@ export function format(node: Node): string {
   }
 }
 
+/** Like format(), but without the outermost parentheses — for display. */
+export function formatTop(node: Node): string {
+  if (node.type === "var" || node.type === "const" || node.type === "not") return format(node);
+  return `${format(node.left)} ${SYMBOL[node.type]} ${format(node.right)}`;
+}
+
 export function collectVars(node: Node, acc: Set<string> = new Set()): string[] {
   if (node.type === "var") acc.add(node.name);
   else if (node.type === "not") collectVars(node.arg, acc);
@@ -278,13 +284,18 @@ export function subFormulas(node: Node, acc: Node[] = []): Node[] {
   return acc;
 }
 
+/**
+ * Every assignment over `vars`, in ascending binary order — all-false first,
+ * all-true last. This is the conventional truth-table ordering and matches the
+ * order used by findCounterexample/entails.
+ */
 export function allAssignments(vars: string[]): Record<string, boolean>[] {
   const rows: Record<string, boolean>[] = [];
   const total = 2 ** vars.length;
   for (let i = 0; i < total; i++) {
     const env: Record<string, boolean> = {};
     vars.forEach((v, idx) => {
-      env[v] = ((i >> (vars.length - idx - 1)) & 1) === 0;
+      env[v] = ((i >> (vars.length - idx - 1)) & 1) === 1;
     });
     rows.push(env);
   }

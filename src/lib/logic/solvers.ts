@@ -120,6 +120,12 @@ export type ResolutionStep = {
   id: number;
   clause: string;
   origin: string;
+  /** Where the clause came from — lets the UI lay the derivation out as a tree. */
+  kind: "premise" | "negated-conclusion" | "derived";
+  /** The two clause ids this one was resolved from. Absent for root clauses. */
+  parents?: [number, number];
+  /** True for the empty clause □. */
+  empty?: boolean;
 };
 
 export type ResolutionResult = {
@@ -152,17 +158,18 @@ function resolveClauses(a: Clause, b: Clause): Clause[] {
   return results;
 }
 
-function refute(clauses: Clause[], steps: ResolutionStep[], startId: number): boolean {
-  const known = new Map<string, number>();
-  const list: Clause[] = [];
+/**
+ * Saturates `list` by resolution until the empty clause appears or nothing new
+ * can be derived. `known` and `list` arrive pre-seeded with the root clauses so
+ * that step ids line up with the premise / ¬conclusion steps already recorded.
+ */
+function refute(
+  known: Map<string, number>,
+  list: Clause[],
+  steps: ResolutionStep[],
+  startId: number,
+): boolean {
   let id = startId;
-  for (const c of clauses) {
-    const k = clauseKey(c);
-    if (known.has(k)) continue;
-    known.set(k, id);
-    list.push(c);
-    id++;
-  }
   let changed = true;
   let guard = 0;
   while (changed && guard < 2000) {
@@ -173,6 +180,8 @@ function refute(clauses: Clause[], steps: ResolutionStep[], startId: number): bo
         if (guard > 2000) break;
         const a = list[i]!;
         const b = list[j]!;
+        const aId = known.get(clauseKey(a))!;
+        const bId = known.get(clauseKey(b))!;
         for (const r of resolveClauses(a, b)) {
           const k = clauseKey(r);
           if (known.has(k)) continue;
@@ -180,7 +189,10 @@ function refute(clauses: Clause[], steps: ResolutionStep[], startId: number): bo
           steps.push({
             id,
             clause: r.length ? clauseToString(r) : "□  (empty clause)",
-            origin: `resolve ${known.get(clauseKey(a))} with ${known.get(clauseKey(b))}`,
+            origin: `resolve ${aId} with ${bId}`,
+            kind: "derived",
+            parents: [aId, bId],
+            ...(r.length === 0 ? { empty: true } : {}),
           });
           id++;
           list.push(r);
@@ -195,15 +207,23 @@ function refute(clauses: Clause[], steps: ResolutionStep[], startId: number): bo
 
 export function proveByResolution(premises: Node[], conclusion: Node | null): ResolutionResult {
   const steps: ResolutionStep[] = [];
-  let id = 1;
+  const known = new Map<string, number>();
   const baseClauses: Clause[] = [];
+  let id = 1;
+
+  /** Records a root clause, skipping duplicates so ids stay in step with `known`. */
+  const addRoot = (c: Clause, origin: string, kind: ResolutionStep["kind"]) => {
+    const k = clauseKey(c);
+    if (known.has(k)) return;
+    known.set(k, id);
+    steps.push({ id, clause: clauseToString(c), origin, kind });
+    baseClauses.push(c);
+    id++;
+  };
+
   premises.forEach((p, idx) => {
     const { clauses } = convertToCNF(p);
-    for (const c of clauses) {
-      steps.push({ id, clause: clauseToString(c), origin: `premise ${idx + 1}` });
-      baseClauses.push(c);
-      id++;
-    }
+    for (const c of clauses) addRoot(c, `premise ${idx + 1}`, "premise");
   });
 
   // Check premise satisfiability first
@@ -211,7 +231,7 @@ export function proveByResolution(premises: Node[], conclusion: Node | null): Re
     baseClauses.length === 0 ? { satisfiable: true } : dpll(baseClauses.map((c) => [...c]), []);
   if (!premisesSat.satisfiable) {
     const negSteps: ResolutionStep[] = [...steps];
-    refute(baseClauses, negSteps, id);
+    refute(new Map(known), [...baseClauses], negSteps, id);
     return {
       provedByResolution: true,
       steps: negSteps,
@@ -237,11 +257,9 @@ export function proveByResolution(premises: Node[], conclusion: Node | null): Re
   const negated: Node = { type: "not", arg: conclusion };
   const { clauses: negClauses } = convertToCNF(negated);
   for (const c of negClauses) {
-    steps.push({ id, clause: clauseToString(c), origin: "¬conclusion (proof by refutation)" });
-    id++;
+    addRoot(c, "¬conclusion (proof by refutation)", "negated-conclusion");
   }
-  const all = [...baseClauses, ...negClauses];
-  const refuted = refute(all, steps, 1);
+  const refuted = refute(known, baseClauses, steps, id);
 
   if (refuted) {
     return {
@@ -306,7 +324,7 @@ export function checkEquivalence(a: Node, b: Node): EquivalenceResult {
   for (let i = 0; i < total; i++) {
     const env: Record<string, boolean> = {};
     vars.forEach((v, idx) => {
-      env[v] = ((i >> (vars.length - idx - 1)) & 1) === 0;
+      env[v] = ((i >> (vars.length - idx - 1)) & 1) === 1;
     });
     rows.push({ env, a: evaluate(a, env), b: evaluate(b, env) });
   }
