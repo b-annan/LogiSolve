@@ -1,19 +1,16 @@
 import { useMemo } from "react";
-import { FormulaInput, Highlighted } from "./FormulaInput";
-import { Panel, Verdict, Examples, TF } from "./Panel";
+import { Highlighted } from "./FormulaInput";
+import { Callout, Card, EmptyState, Explainer, SectionLabel, VerdictBanner } from "./Panel";
+import { RunCard } from "./RunCard";
 import { useFormula } from "./useFormula";
 import { satSolve } from "@/lib/logic/solvers";
 import { convertToCNF, clausesToString } from "@/lib/logic/cnf";
+import { cn } from "@/lib/utils";
 
-const EXAMPLES = [
-  "(P v Q) ^ (~P v R) ^ (~Q v ~R)",
-  "P ^ ~P",
-  "(A v B v C) ^ (~A v ~B) ^ (~B v ~C) ^ (~A v ~C)",
-  "(P -> Q) ^ (Q -> R) ^ P ^ ~R",
-];
+const EXAMPLES = ["P ^ ~P", "(P v Q) ^ ~P", "(P -> Q) ^ P ^ ~Q"];
 
 export function SatModule() {
-  const f = useFormula("(P v Q) ^ (~P v R) ^ (~Q v ~R)");
+  const f = useFormula();
 
   const data = useMemo(() => {
     if (!f.ast) return null;
@@ -25,83 +22,133 @@ export function SatModule() {
   }, [f.ast]);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
-      <Panel title="Module 05 · Input" subtitle="SAT Solver (DPLL)">
-        <div className="space-y-4">
-          <FormulaInput label="Formula" value={f.text} onChange={f.setText} error={f.error} />
-          <Examples items={EXAMPLES} onPick={f.setText} />
-          <div className="rounded-sm border border-border/60 bg-background/40 p-3 text-xs leading-relaxed text-muted-foreground">
-            <p className="font-mono uppercase tracking-[0.18em]">Algorithm</p>
-            <p className="mt-2">
-              A custom DPLL search: the formula is converted to a clause set, then unit
-              propagation and pure-literal elimination reduce the search space before branching
-              with chronological backtracking.
-            </p>
-          </div>
-        </div>
-      </Panel>
+    <>
+      <RunCard
+        label="Formula"
+        action="Solve"
+        layout="corner"
+        value={f.draft}
+        onChange={f.setDraft}
+        onRun={f.run}
+        placeholder="e.g. (P v Q) ^ ~P"
+        invalid={!!f.draftError}
+        examples={EXAMPLES}
+        onPickExample={f.runWith}
+      />
 
-      <div className="space-y-5">
-        {data && (
-          <Verdict
+      {f.error && (
+        <Callout tone="bad" icon="⚠">
+          {f.error.message}
+          {f.error.position >= 0 ? ` (at character ${f.error.position + 1})` : ""}
+        </Callout>
+      )}
+
+      {!f.ast && !f.error && (
+        <EmptyState
+          glyph="◇"
+          title="Enter a formula to test for satisfiability"
+          example="(P v Q) ^ ~P"
+          onPickExample={f.runWith}
+        >
+          <p>DPLL converts the formula to clauses, then applies unit propagation</p>
+          <p>and pure-literal elimination before branching on a variable.</p>
+        </EmptyState>
+      )}
+
+      {data && (
+        <div className="flex flex-col gap-4">
+          <VerdictBanner
             tone={data.result.satisfiable ? "good" : "bad"}
             label={data.result.satisfiable ? "Satisfiable" : "Unsatisfiable"}
-            detail={
+            caption={
               data.result.satisfiable
-                ? "At least one interpretation makes the formula true. A satisfying model is shown below."
-                : "Every interpretation falsifies the formula — DPLL exhausted the search space with conflicts on all branches."
+                ? "A satisfying assignment was found."
+                : "No assignment can make this formula true (contradiction)."
             }
           />
-        )}
-        {data?.result.model && (
-          <Panel title="Satisfying model" subtitle="Variable assignment found by DPLL">
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(data.result.model).map(([k, v]) => (
-                <span
-                  key={k}
-                  className="rounded-sm border border-border bg-background/50 px-2.5 py-1 font-mono text-sm"
-                >
-                  <span className="text-variable">{k}</span> = <TF value={v} />
-                </span>
-              ))}
-            </div>
-          </Panel>
-        )}
-        {data && (
-          <Panel title="Module 05 · Trace" subtitle="Clause set and search log">
-            <div className="space-y-4">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                  CNF clause set
-                </p>
-                <p className="mt-1.5 overflow-x-auto">
-                  <Highlighted source={clausesToString(data.cnf.clauses)} className="text-sm" />
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[
+
+          {data.result.model && (
+            <Card>
+              <SectionLabel>Satisfying assignment</SectionLabel>
+              <ul className="flex flex-wrap gap-2.5 pt-2.5">
+                {Object.entries(data.result.model).map(([name, value]) => (
+                  <li
+                    key={name}
+                    className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2 font-mono text-[13px]"
+                  >
+                    <span className="text-syntax-identifier">{name}</span>
+                    <span className="text-subtle">=</span>
+                    <span
+                      className={cn(
+                        "rounded-sm border px-1.5 py-0.5 text-[11px] font-semibold",
+                        value
+                          ? "border-truth/25 bg-truth/10 text-truth"
+                          : "border-destructive/25 bg-destructive/10 text-destructive",
+                      )}
+                    >
+                      {value ? "TRUE" : "FALSE"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          <Card>
+            <SectionLabel>CNF clause set</SectionLabel>
+            <p className="overflow-x-auto pt-2">
+              <Highlighted
+                source={clausesToString(data.cnf.clauses) || "⊤"}
+                className="text-[13px]"
+              />
+            </p>
+
+            <ul className="grid grid-cols-3 gap-2.5 pt-4">
+              {(
+                [
                   ["Decisions", data.result.decisions],
                   ["Unit props", data.result.unitPropagations],
                   ["Pure literals", data.result.pureLiterals],
-                ].map(([label, value]) => (
-                  <div
-                    key={String(label)}
-                    className="rounded-sm border border-border bg-background/40 px-3 py-2"
-                  >
-                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                      {label}
-                    </p>
-                    <p className="font-mono text-lg text-primary">{value}</p>
-                  </div>
-                ))}
-              </div>
-              <pre className="max-h-64 overflow-auto rounded-sm border border-border bg-background/60 p-3 font-mono text-xs leading-relaxed text-foreground/80">
+                ] as const
+              ).map(([label, value]) => (
+                <li key={label} className="rounded-md border border-border bg-background px-3 py-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-subtle">
+                    {label}
+                  </p>
+                  <p className="pt-0.5 font-mono text-lg text-primary">{value}</p>
+                </li>
+              ))}
+            </ul>
+
+            <details className="pt-4">
+              <summary className="cursor-pointer text-[13px] font-medium text-info">
+                Search log
+              </summary>
+              <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-border bg-background p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
                 {data.result.log.join("\n") || "—"}
               </pre>
-            </div>
-          </Panel>
-        )}
-      </div>
-    </div>
+            </details>
+          </Card>
+
+          <Explainer>
+            <p>
+              <strong>DPLL</strong> decides satisfiability by search rather than by enumerating all
+              2<sup>n</sup> assignments. It converts the formula to clauses, then repeatedly applies
+              two rules: <strong>unit propagation</strong> (a one-literal clause forces that
+              literal&rsquo;s value) and <strong>pure-literal elimination</strong> (a variable that
+              only ever appears with one polarity can be set to satisfy it). When neither applies,
+              it branches on a variable and backtracks on conflict.
+            </p>
+            <p>
+              This run took {data.result.decisions} decision
+              {data.result.decisions === 1 ? "" : "s"}, {data.result.unitPropagations} unit
+              propagation{data.result.unitPropagations === 1 ? "" : "s"} and{" "}
+              {data.result.pureLiterals} pure-literal assignment
+              {data.result.pureLiterals === 1 ? "" : "s"}.
+            </p>
+          </Explainer>
+        </div>
+      )}
+    </>
   );
 }

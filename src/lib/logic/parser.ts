@@ -40,12 +40,12 @@ const OPERATORS: Record<string, string> = {
   "|": "or",
   "∨": "or",
   "+": "or",
-  "v": "or",
-  "V": "or",
+  v: "or",
+  V: "or",
   "~": "not",
   "!": "not",
   "¬": "not",
-  "xor": "xor",
+  xor: "xor",
   "⊕": "xor",
 };
 
@@ -204,7 +204,10 @@ export function parse(input: string): Node {
 
   const ast = parseIff();
   if (pos < tokens.length) {
-    throw new LogicError(`Unexpected token near position ${tokens[pos]!.start}`, tokens[pos]!.start);
+    throw new LogicError(
+      `Unexpected token near position ${tokens[pos]!.start}`,
+      tokens[pos]!.start,
+    );
   }
   return ast;
 }
@@ -226,12 +229,19 @@ export function format(node: Node): string {
       return node.value ? "⊤" : "⊥";
     case "not": {
       const inner = format(node.arg);
-      const needParen = node.arg.type !== "var" && node.arg.type !== "const" && node.arg.type !== "not";
+      const needParen =
+        node.arg.type !== "var" && node.arg.type !== "const" && node.arg.type !== "not";
       return `${SYMBOL.not}${needParen ? `(${inner})` : inner}`;
     }
     default:
       return `(${format(node.left)} ${SYMBOL[node.type]} ${format(node.right)})`;
   }
+}
+
+/** Like format(), but without the outermost parentheses — for display. */
+export function formatTop(node: Node): string {
+  if (node.type === "var" || node.type === "const" || node.type === "not") return format(node);
+  return `${format(node.left)} ${SYMBOL[node.type]} ${format(node.right)}`;
 }
 
 export function collectVars(node: Node, acc: Set<string> = new Set()): string[] {
@@ -278,13 +288,18 @@ export function subFormulas(node: Node, acc: Node[] = []): Node[] {
   return acc;
 }
 
+/**
+ * Every assignment over `vars`, in ascending binary order — all-false first,
+ * all-true last. This is the conventional truth-table ordering and matches the
+ * order used by findCounterexample/entails.
+ */
 export function allAssignments(vars: string[]): Record<string, boolean>[] {
   const rows: Record<string, boolean>[] = [];
   const total = 2 ** vars.length;
   for (let i = 0; i < total; i++) {
     const env: Record<string, boolean> = {};
     vars.forEach((v, idx) => {
-      env[v] = ((i >> (vars.length - idx - 1)) & 1) === 0;
+      env[v] = ((i >> (vars.length - idx - 1)) & 1) === 1;
     });
     rows.push(env);
   }
