@@ -33,9 +33,9 @@ export const MODULES: ModuleDef[] = [
 
 /** Operator legend pinned to the bottom of the sidebar. */
 export const OPERATOR_REFERENCE = [
-  { glyph: "→", label: "implication (→)", className: "text-variable" },
-  { glyph: "∧", label: "conjunction (^)", className: "text-operator" },
-  { glyph: "∨", label: "disjunction (v)", className: "text-warning" },
-  { glyph: "¬", label: "negation (~)", className: "text-negation" },
-  { glyph: "∀∃", label: "quantifiers", className: "text-quantifier" },
+  { glyph: "→", label: "implication (→)", className: "text-syntax-implies" },
+  { glyph: "∧", label: "conjunction (^)", className: "text-syntax-and" },
+  { glyph: "∨", label: "disjunction (v)", className: "text-syntax-or" },
+  { glyph: "¬", label: "negation (~)", className: "text-syntax-not" },
+  { glyph: "∀∃", label: "quantifiers", className: "text-syntax-quantifier" },
 ];

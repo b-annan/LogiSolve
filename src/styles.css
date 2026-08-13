@@ -53,11 +53,13 @@
   --color-falsity: var(--falsity);
   --color-info: var(--info);
   --color-warning: var(--warning);
-  --color-variable: var(--variable);
-  --color-operator: var(--operator);
-  --color-negation: var(--negation);
-  --color-quantifier: var(--quantifier);
-  --color-paren: var(--dim-foreground);
+  --color-syntax-identifier: var(--syntax-identifier);
+  --color-syntax-and: var(--syntax-and);
+  --color-syntax-or: var(--syntax-or);
+  --color-syntax-not: var(--syntax-not);
+  --color-syntax-implies: var(--syntax-implies);
+  --color-syntax-quantifier: var(--syntax-quantifier);
+  --color-syntax-punctuation: var(--muted-foreground);
 
   --color-chart-1: var(--primary);
   --color-chart-2: var(--truth);
@@ -108,11 +110,14 @@
   --info: oklch(0.7153 0.1518 253.31); /* #58a6ff */
   --warning: oklch(0.7991 0.1412 60.1); /* #ffa657 */
 
-  /* formula syntax highlighting */
-  --variable: oklch(0.7857 0.1153 246.66); /* #79c0ff */
-  --operator: oklch(0.7717 0.188 145.48); /* #56d364 */
-  --negation: oklch(0.7386 0.1709 349.68); /* #f778ba */
-  --quantifier: oklch(0.8005 0.1275 305.86); /* #d2a8ff */
+  /* formula syntax highlighting — identifiers are orange, operators follow the
+     sidebar's operator reference, punctuation stays muted */
+  --syntax-identifier: oklch(0.7991 0.1412 60.1); /* #ffa657 */
+  --syntax-and: oklch(0.7717 0.188 145.48); /* #56d364 */
+  --syntax-or: oklch(0.7991 0.1412 60.1); /* #ffa657 */
+  --syntax-not: oklch(0.7386 0.1709 349.68); /* #f778ba */
+  --syntax-implies: oklch(0.7857 0.1153 246.66); /* #79c0ff */
+  --syntax-quantifier: oklch(0.8005 0.1275 305.86); /* #d2a8ff */
 }
 
 @layer base {
